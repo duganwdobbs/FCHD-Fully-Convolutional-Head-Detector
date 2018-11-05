@@ -90,7 +90,7 @@ def brainwash_data_line_parser(line):
         return {'img_path':src_path, 'number': num_coordinates,'coordinates':coordinates}
     else:
         img_path, bbox_coordinates_raw = line.split(":")
-        src_path = os.path.join(opt.data_root_path,img_path.replace('"',''))             
+        src_path = os.path.join(opt.data_root_path,img_path.replace('"',''))
         bbox_coordinates_raw = bbox_coordinates_raw.replace("(","")
         bbox_coordinates_raw = bbox_coordinates_raw.replace("),",",")
         bbox_coordinates_raw = bbox_coordinates_raw.replace(").","")
@@ -111,15 +111,15 @@ def brainwash_data_line_parser(line):
 def get_phase_data_list(data_list_path):
     """Return a list of data object.
     data object: path, n_boxs, bboxs
-    
-    Args: data_list_path: list of filenames and groundtruth information available
-            in the brainwash dataset. 
 
-    Returns: A list of data objects. Where the length of the list is equal 
+    Args: data_list_path: list of filenames and groundtruth information available
+            in the brainwash dataset.
+
+    Returns: A list of data objects. Where the length of the list is equal
             to the number of images contained in the split of the dataset.
     """
     data_list = []
-    with open(data_list_path, 'rb') as fp:
+    with open(data_list_path, 'r') as fp:
         for line in fp.readlines():
             d = brainwash_data_line_parser(line)
             if d['number'] != 0:
@@ -149,7 +149,7 @@ def shanghai_tech_phase_data(data_list_path, phase):
         if d['number'] != 0:
             d_object = data(d)
             data_list.append(d_object)
-    
+
     return data_list
 
 
@@ -169,13 +169,13 @@ def check_loaded_data(d):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     #plt.show()
-    
+
 def vis_anchors(img_tensor, anchor):
     img_tensor = img_tensor.cpu()
     img = img_tensor.data.numpy()
     img_cp = img.copy()
     img_cp = np.squeeze(img_cp)
-    img_cp = draw_bboxs(img_cp, anchor, anchor.shape[0]) 
+    img_cp = draw_bboxs(img_cp, anchor, anchor.shape[0])
     plt.imshow(img_cp)
     plt.show()
 
@@ -190,7 +190,7 @@ def draw_bboxs(image, bboxs, n_boxs, is_transpose=True):
 
 def _test():
     img_path_list = [filename for filename in glob.glob((os.path.join(opt.shanghai_data_root_path,'images','*.jpg')))]
-    data_list = shanghai_tech_phase_data(img_path_list)    
+    data_list = shanghai_tech_phase_data(img_path_list)
     pass
 
 if __name__ == "__main__":
