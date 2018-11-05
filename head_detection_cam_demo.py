@@ -17,17 +17,20 @@ from src.config import opt
 import time
 import cv2
 
+
+
 SAVE_FLAG = 0
 THRESH = 0.01
 IM_RESIZE = False
 
-def read_img():
-    ret, f = cap.read()
-    f = f[:,:,::-1]
+def read_img(cap):
+    f = None
+    while f is None:
+      ret, f = cap.read()
+      f = f[:,:,::-1]
     if IM_RESIZE:
         f = f.resize((640,480), Image.ANTIALIAS)
 
-    f.convert('RGB')
     img_raw = np.asarray(f, dtype=np.uint8)
     img_raw_final = img_raw.copy()
     img = np.asarray(f, dtype=np.float32)
@@ -39,12 +42,12 @@ def read_img():
     return img, img_raw_final, scale
 
 def detect(cap,model_path):
-
+  head_detector = Head_Detector_VGG16(ratios=[1], anchor_scales=[2,4])
+  trainer = Head_Detector_Trainer(head_detector).cuda()
+  trainer.load(model_path)
+  while True :
     img, img_raw, scale = read_img(cap)
 
-    head_detector = Head_Detector_VGG16(ratios=[1], anchor_scales=[2,4])
-    trainer = Head_Detector_Trainer(head_detector).cuda()
-    trainer.load(model_path)
     img = at.totensor(img)
     img = img[None, : ,: ,:]
     img = img.cuda().float()
@@ -54,17 +57,27 @@ def detect(cap,model_path):
     tt = et - st
     print ("[INFO] Head detection over. Time taken: {:.4f} s".format(tt))
     for i in range(pred_bboxes_.shape[0]):
+        print(pred_bboxes_[i])
         ymin, xmin, ymax, xmax = pred_bboxes_[i,:]
         utils.draw_bounding_box_on_image_array(img_raw,ymin, xmin, ymax, xmax)
 
-    plt.show()
+    cv2.imshow("Capture",img_raw[:,:,::-1])
+    # plt.imshow(img_raw)
+    # plt.show()
+    if cv2.waitKey(1) == 27:
+      cv2.destroyAllWindows()
+      break  # esc to quit
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, default='./checkpoints/sess:2/head_detector08120858_0.682282441835')
+    parser.add_argument("--model_path", type=str, default='./checkpoints/head_detector11042200_0.7340361128020727')
     args = parser.parse_args()
     cap  = cv2.VideoCapture(0)
+    cap.set(3, 640)		
+    cap.set(4, 480)
+
 
     detect(cap,args.model_path)
     # model_path = './checkpoints/sess:2/head_detector08120858_0.682282441835'
